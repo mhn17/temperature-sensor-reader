@@ -1,35 +1,57 @@
-from array import array
 
 class TfaDecoder(object):
+    THRESHOLD = 5000
+    HIGH_COUNT_HIGH = 30
+    HIGH_COUNT_LOW = 8
+    FRAME_LENGTH = 47
+    TEMPERATURE_SIGNAL_START = 20
+    TEMPERATURE_SIGNAL_END = 31
+
     def __init__(self):
+        self.temperature = None
         self.highCounter = 0
-        self.foundFrame = 0
-        self.frameIndex = 0
-        self.signal = array('b')
-        self.signalIndex = 0
-        self.valueCounter = 0
+        self.signals = None
+        self.signalsIndex = None
+
+        self._reset_values()
 
     def process(self, value):
-        self.valueCounter += 1
-        if value > 5000:
+        if value > self.THRESHOLD:
             self.highCounter += 1
         else:
+            if self.highCounter > 0:
+                self._analyze_high_counts(self.highCounter)
+
             self.highCounter = 0
 
-        if self.highCounter == 10:
-            self.signal.append(0)
-            self.signalIndex += 1
-        elif self.highCounter == 34:
-            self.signalIndex -= 1
-            self.signal[self.signalIndex] = 1
-            self.signalIndex += 1
+    def _reset_values(self):
+        self.signals = bytearray()
+        self.signalsIndex = 0
 
-        if self.signalIndex == 47:
-            tempSignal = self.signal[20:31]
-            tempString = ''
-            for value in tempSignal:
-                tempString += `value`
+    def _analyze_high_counts(self, high_counts):
+        # if the high counts is higher than the low threshold, add a new signal set to 0
+        if high_counts > self.HIGH_COUNT_LOW:
+            self.signals.append(0)
+            self.signalsIndex += 1
 
-            tempInt = int(tempString, 2)
-            temp = (1647 - tempInt) / 10
-            self.signalIndex = 0
+        # if the high counts is also higher than the high threshold, replace new signal value with 1
+        if high_counts > self.HIGH_COUNT_HIGH:
+            self.signalsIndex -= 1
+            self.signals[self.signalsIndex] = 1
+            self.signalsIndex += 1
+
+        # if end of frame, calculate the temperature
+        if self.signalsIndex == self.FRAME_LENGTH:
+            self._calc_temperature(self.signals[self.TEMPERATURE_SIGNAL_START:self.TEMPERATURE_SIGNAL_END])
+
+    def _calc_temperature(self, temperature_signals):
+        coded_temperature = self._calc_int_value_of_coded_temperature(temperature_signals)
+        self.temperature = (1647 - coded_temperature) / 10
+        self._reset_values()
+
+    @staticmethod
+    def _calc_int_value_of_coded_temperature(temperature_signals):
+        coded_temperature_string = ''
+        for value in temperature_signals:
+            coded_temperature_string += `value`
+        return int(coded_temperature_string, 2)
