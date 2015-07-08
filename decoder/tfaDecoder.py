@@ -9,6 +9,7 @@ class TfaDecoder(object):
 
     def __init__(self):
         self.temperature = None
+        self.temperatureSetCounter = 0
         self.highCounter = 0
         self.signals = None
         self.signalsIndex = None
@@ -47,6 +48,7 @@ class TfaDecoder(object):
     def _calc_temperature(self, temperature_signals):
         coded_temperature = self._calc_int_value_of_coded_temperature(temperature_signals)
         self.temperature = (1647 - coded_temperature) / 10
+        self.temperatureSetCounter += 1
         self._reset_values()
 
     @staticmethod
