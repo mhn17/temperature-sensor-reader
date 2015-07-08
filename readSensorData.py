@@ -25,6 +25,7 @@ fin = io.open(filename, mode="rb")
 b = fin.read(BYTE_READ_LENGTH)
 
 counter = 0
+temperatureSetCounter = 0
 # process values
 while len(b) == BYTE_READ_LENGTH:
     counter += 1
@@ -33,8 +34,10 @@ while len(b) == BYTE_READ_LENGTH:
     values = struct.unpack(fmt, b)
     for value in values:
         decoder.process(value)
+    if temperatureSetCounter < decoder.temperatureSetCounter:
+        print "Temperature: " + str(decoder.temperature)
+        temperatureSetCounter = decoder.temperatureSetCounter
 
-    print "Temperature: " + str(decoder.temperature)
     b = fin.read(BYTE_READ_LENGTH)
 
 # close file
