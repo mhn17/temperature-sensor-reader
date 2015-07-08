@@ -4,7 +4,7 @@ import io
 import struct
 from decoder.tfaDecoder import TfaDecoder
 
-BYTE_READ_LENGTH = 1025
+BYTE_READ_LENGTH = 1024
 
 # parse arguments
 # python readSensorData path/to/file
@@ -34,6 +34,7 @@ while len(b) == BYTE_READ_LENGTH:
     for value in values:
         decoder.process(value)
 
+    print "Temperature: " + str(decoder.temperature)
     b = fin.read(BYTE_READ_LENGTH)
 
 # close file
