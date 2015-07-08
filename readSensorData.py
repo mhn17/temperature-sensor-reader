@@ -1,28 +1,24 @@
-import argparse
-import sys
-import io
 import struct
 from decoder.tfaDecoder import TfaDecoder
+from reader.rtlReader import RtlReader
+from writer.fileWriter import FileWriter
 
 BYTE_READ_LENGTH = 1024
-
-# parse arguments
-# python readSensorData path/to/file
-parser = argparse.ArgumentParser(description='Decoder for weather data of sensors from TFA received with RTL SDR.')
-parser.add_argument('inputfile', type=str, nargs=1, help="Input file name. Expects a raw file with signed 16-bit samples in platform default byte order and 24 kHz sample rate.")
-args = parser.parse_args()
+RTL_DEVICE = 0
+RTL_FREQUENCY = 433.9865
+FILE_PATH = "./temperature.txt"
 
 # create decoder
 decoder = TfaDecoder()
 
-# read file
-filename = args.inputfile[0]
-if filename == '-':
-    filename = sys.stdin.fileno()
-fin = io.open(filename, mode="rb")
+# create reader
+reader = RtlReader()
+reader.init(RTL_DEVICE, RTL_FREQUENCY)
+b = reader.read(BYTE_READ_LENGTH)
 
-# read first bytes
-b = fin.read(BYTE_READ_LENGTH)
+# create writer
+writer = FileWriter()
+writer.init(FILE_PATH)
 
 counter = 0
 temperatureSetCounter = 0
@@ -36,11 +32,9 @@ while len(b) == BYTE_READ_LENGTH:
         decoder.process(value)
     if temperatureSetCounter < decoder.temperatureSetCounter:
         print "Temperature: " + str(decoder.temperature)
+        writer.write(decoder.temperature)
         temperatureSetCounter = decoder.temperatureSetCounter
 
-    b = fin.read(BYTE_READ_LENGTH)
-
-# close file
-fin.close()
+    b = reader.read(BYTE_READ_LENGTH)
 
 
