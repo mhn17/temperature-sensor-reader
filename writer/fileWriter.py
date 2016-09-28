@@ -1,3 +1,5 @@
+# FileWriter
+# Writes the temperature data to a file
 
 class FileWriter(object):
     def __init__(self):

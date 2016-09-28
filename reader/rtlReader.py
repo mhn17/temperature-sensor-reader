@@ -1,5 +1,7 @@
 import subprocess
 
+# RtlReader
+# Opens rtl_fm as a subprocess and reads the data
 class RtlReader(object):
     def __init__(self):
         self.sdr = None
