@@ -6,6 +6,7 @@ from writer.fileWriter import FileWriter
 BYTE_READ_LENGTH = 1024
 RTL_DEVICE = 0
 RTL_FREQUENCY = 433.9865
+RTL_SAMPLE_RATE = 30
 FILE_PATH = "./temperature.txt"
 
 # create decoder
@@ -13,7 +14,7 @@ decoder = TfaDecoder()
 
 # create reader
 reader = RtlReader()
-reader.init(RTL_DEVICE, RTL_FREQUENCY)
+reader.init(RTL_DEVICE, RTL_FREQUENCY, RTL_SAMPLE_RATE)
 b = reader.read(BYTE_READ_LENGTH)
 
 # create writer
@@ -36,5 +37,3 @@ while len(b) == BYTE_READ_LENGTH:
         temperatureSetCounter = decoder.temperatureSetCounter
 
     b = reader.read(BYTE_READ_LENGTH)
-
-
